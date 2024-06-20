@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script>
+      var questions = [];
+      var currentQuestion = 0;
+      var score = 0;
+
+      function loadQuestions() {
+        google.script.run.withSuccessHandler(function(data) {
+          questions = data;
+          displayQuestion();
+        }).getQuestions();
+      }
+
+      function displayQuestion() {
+        if (currentQuestion < questions.length) {
+          var question = questions[currentQuestion];
+          document.getElementById('question').innerText = question.question;
+          document.getElementById('option1').innerText = question.options[0];
+          document.getElementById('option2').innerText = question.options[1];
+          document.getElementById('option3').innerText = question.options[2];
+          document.getElementById('option4').innerText = question.options[3];
+        } else {
+          document.getElementById('quiz').innerHTML = `<h2>Your score is ${score} out of ${questions.length}</h2>`;
+        }
+      }
+
+      function checkAnswer(option) {
+        var question = questions[currentQuestion];
+        if (question.options[option] == question.correctAnswer) {
+          score++;
+        }
+        currentQuestion++;
+        displayQuestion();
+      }
+
+      window.onload = loadQuestions;
+    </script>
+  </head>
+  <body>
+    <div id="quiz">
+      <h1>Quiz</h1>
+      <p id="question"></p>
+      <button onclick="checkAnswer(0)" id="option1"></button><br>
+      <button onclick="checkAnswer(1)" id="option2"></button><br>
+      <button onclick="checkAnswer(2)" id="option3"></button><br>
+      <button onclick="checkAnswer(3)" id="option4"></button>
+    </div>
+  </body>
+</html>
