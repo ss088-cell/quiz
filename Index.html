@@ -2,16 +2,101 @@
 <html>
   <head>
     <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #ADD8E6;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      #quiz-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        text-align: center;
+      }
+
+      #quiz h1 {
+        color: #333;
+      }
+
+      #question {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+
+      .option-btn {
+        background: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 5px 0;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+
+      .option-btn:hover {
+        background: #0056b3;
+      }
+
+      .result {
+        font-size: 20px;
+        margin-top: 20px;
+      }
+
+      .email-input {
+        padding: 10px;
+        margin-bottom: 20px;
+        font-size: 16px;
+        width: calc(100% - 22px);
+      }
+
+      .start-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 5px 0;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+
+      .start-btn:hover {
+        background: #218838;
+      }
+    </style>
     <script>
       var questions = [];
       var currentQuestion = 0;
       var score = 0;
+      var email = "";
 
       function loadQuestions() {
         google.script.run.withSuccessHandler(function(data) {
           questions = data;
-          displayQuestion();
         }).getQuestions();
+      }
+
+      function startQuiz() {
+        email = document.getElementById('email').value;
+        if (!email) {
+          alert('Please enter your email');
+          return;
+        }
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        displayQuestion();
       }
 
       function displayQuestion() {
@@ -23,30 +108,43 @@
           document.getElementById('option3').innerText = question.options[2];
           document.getElementById('option4').innerText = question.options[3];
         } else {
-          document.getElementById('quiz').innerHTML = `<h2>Your score is ${score} out of ${questions.length}</h2>`;
+          document.getElementById('quiz-container').innerHTML = `
+            <h2 class="result">Your score is ${score} out of ${questions.length}</h2>
+            <p>Congratulations! Champion on completing the quiz. We appreciate your participation! We will get back to you with the results soon...!!!!</p>`;
         }
       }
 
       function checkAnswer(option) {
         var question = questions[currentQuestion];
-        if (question.options[option] == question.correctAnswer) {
+        var answer = question.options[option];
+        var correct = answer == question.correctAnswer;
+        if (correct) {
           score++;
         }
+        var timestamp = new Date().toLocaleString();
+        google.script.run.logAnswer(email, question.question, answer, correct, timestamp);
         currentQuestion++;
-        displayQuestion();
+        setTimeout(displayQuestion, 500); // Small delay to ensure logging completes before displaying the next question
       }
 
       window.onload = loadQuestions;
     </script>
   </head>
   <body>
-    <div id="quiz">
-      <h1>Quiz</h1>
-      <p id="question"></p>
-      <button onclick="checkAnswer(0)" id="option1"></button><br>
-      <button onclick="checkAnswer(1)" id="option2"></button><br>
-      <button onclick="checkAnswer(2)" id="option3"></button><br>
-      <button onclick="checkAnswer(3)" id="option4"></button>
+    <div id="quiz-container">
+      <div id="start-screen">
+        <h1>Welcome to the Quiz</h1>
+        <input type="email" id="email" class="email-input" placeholder="Enter your email" required>
+        <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+      </div>
+      <div id="quiz" style="display:none;">
+        <h1>Quiz</h1>
+        <p id="question"></p>
+        <button class="option-btn" onclick="checkAnswer(0)" id="option1"></button><br>
+        <button class="option-btn" onclick="checkAnswer(1)" id="option2"></button><br>
+        <button class="option-btn" onclick="checkAnswer(2)" id="option3"></button><br>
+        <button class="option-btn" onclick="checkAnswer(3)" id="option4"></button>
+      </div>
     </div>
   </body>
 </html>
